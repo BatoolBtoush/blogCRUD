@@ -27,10 +27,10 @@ public class JwtTokenUtil {
     @Autowired
     public UserRepo userRepo;
 
-    @Value("${login-api.rsa-private-key}")
+    @Value("${crud-api.rsa-private-key}")
     private String privateKey;
 
-    @Value("${login-api.rsa-public-key}")
+    @Value("${crud-api.rsa-public-key}")
     private String publicKey;
 
     public enum Tokens {ACCESS_TOKEN, REFRESH_TOKEN}
@@ -40,14 +40,11 @@ public class JwtTokenUtil {
 
 
 
-
     public PrivateKey getPrivateKeyFromString(String key) throws NoSuchAlgorithmException, InvalidKeySpecException {
-//        System.out.println("key::: "+key);
         byte[] privateKeyBytes = Base64.getDecoder().decode(key);
         PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(privateKeyBytes);
         KeyFactory keyFactory = KeyFactory.getInstance("RSA");
         PrivateKey privateKey = keyFactory.generatePrivate(keySpec);
-//        System.out.println("privateKey::: "+privateKey);
         return privateKey;
     }
 
@@ -60,7 +57,6 @@ public class JwtTokenUtil {
     }
 
 
-    // Generates a JWT token using the private key
     public String generateToken(String email, Tokens tokens) {
         User user = userRepo.findByEmailIgnoreCase(email);
         Date now = new Date();
@@ -84,12 +80,10 @@ public class JwtTokenUtil {
     }
 
 
-    // Extracts username from token using the public key
     public String getEmailFromToken(String token) {
         return getClaimsFromToken(token).getSubject();
     }
-//
-//    // Extracts expiration date from token
+
     public Date getExpirationDateFromToken(String token) {
         return getClaimsFromToken(token).getExpiration();
     }
@@ -122,13 +116,11 @@ public class JwtTokenUtil {
             throw new RuntimeException(e);
         }
     }
-//
-//
+
     public boolean isValidRefreshToken(String refreshToken) {
         try {
             Claims claims = validateJwtToken(refreshToken, getPublicKeyFromString(publicKey));
             if (claims == null) {
-                // Token is invalid (either expired or other JWT-related issue)
                 return false;
             }
             Date expirationDate = claims.getExpiration();
@@ -141,7 +133,7 @@ public class JwtTokenUtil {
         return false;
     }
 
-//    // Extracts claims from the token using the public key
+
     private Claims getClaimsFromToken(String token) {
         PublicKey publicKey1 = null;
         try {
@@ -156,12 +148,11 @@ public class JwtTokenUtil {
         return claimsEntity.getPayload();
 
     }
-//
-//    // Checks if the token is expired
+
     public boolean isTokenExpired(String token) {
         return getExpirationDateFromToken(token).before(new Date());
     }
-//
+
 //    // Validates token against user details
 //    public boolean validateToken(String token, UserDetails userDetails) {
 //        return !isTokenExpired(token) && userDetails.getUsername().equals(getUsernameFromToken(token));

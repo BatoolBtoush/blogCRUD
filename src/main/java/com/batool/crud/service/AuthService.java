@@ -7,6 +7,7 @@ import com.batool.crud.entity.Role;
 import com.batool.crud.entity.User;
 import com.batool.crud.repo.UserRepo;
 import com.batool.crud.security.JwtTokenUtil;
+import com.batool.crud.util.Hasher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,7 +15,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 @Service
 public class AuthService {
@@ -28,7 +28,7 @@ public class AuthService {
 
 
     public User registerAdmin(RegistrationRequestDTO registrationRequestDTO){
-        if (userRepo.existsByEmail(registrationRequestDTO.getEmail())) {
+        if (userRepo.existsByEmail(registrationRequestDTO.getEmail().toLowerCase())) {
             throw new IllegalArgumentException("Email is already in use");
         }
 
@@ -46,7 +46,7 @@ public class AuthService {
    }
 
     public User registerContentWriter(RegistrationRequestDTO registrationRequestDTO){
-        if (userRepo.existsByEmail(registrationRequestDTO.getEmail())) {
+        if (userRepo.existsByEmail(registrationRequestDTO.getEmail().toLowerCase())) {
             throw new IllegalArgumentException("Email is already in use");
         }
 
@@ -65,7 +65,7 @@ public class AuthService {
 
 
     public User registerNormalUser(RegistrationRequestDTO registrationRequestDTO){
-        if (userRepo.existsByEmail(registrationRequestDTO.getEmail())) {
+        if (userRepo.existsByEmail(registrationRequestDTO.getEmail().toLowerCase())) {
             throw new IllegalArgumentException("Email is already in use");
         }
 
@@ -122,17 +122,11 @@ public ResponseEntity<Map<String, String>> login(LoginRequestDTO loginRequest) {
 
 
     public ResponseEntity<Map<String, String>> accessTokenFromRefreshToken(String refreshToken) {
-        // Check if the refresh token is valid
         if (jwtTokenUtil.isValidRefreshToken(refreshToken)) {
-
-            // Retrieve user information from the refresh token
             String userEmail = jwtTokenUtil.getEmailFromToken(refreshToken);
 
             User user = checkDBForUserByEmail(userEmail);
-
-            // Check if the user still exists in the database
             if (user != null) {
-                // Generate a new access token
                 String newAccessToken = jwtTokenUtil.generateAccessTokenFromRefreshToken(refreshToken);
 
                 Map<String, String> response = new HashMap<>();
@@ -140,20 +134,15 @@ public ResponseEntity<Map<String, String>> login(LoginRequestDTO loginRequest) {
 
                 return ResponseEntity.ok(response);
             } else {
-                // Handle the case where the user associated with the refresh token has been deleted
                 Map<String, String> errorResponse = new HashMap<>();
                 errorResponse.put("error", "User associated with the refresh token does not exist");
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
             }
         } else {
-            // Handle the case of an invalid refresh token
             Map<String, String> errorResponse = new HashMap<>();
             errorResponse.put("error", "Invalid refresh token");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
         }
     }
-
-
-
 
 }

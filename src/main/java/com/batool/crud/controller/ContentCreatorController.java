@@ -5,8 +5,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@PreAuthorize("hasAnyRole('ROLE_NORMAL', 'ROLE_ADMIN')")
-public class CRUDController {
+//@PreAuthorize("hasAnyRole('ROLE_CONTENT_WRITER', 'ROLE_ADMIN')")
+public class ContentCreatorController {
 
     @PostMapping("/hey")
     public String hey(){

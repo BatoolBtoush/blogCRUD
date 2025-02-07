@@ -1,4 +1,4 @@
-package com.batool.crud.service;
+package com.batool.crud.util;
 
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
