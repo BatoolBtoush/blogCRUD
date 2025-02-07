@@ -1,6 +1,9 @@
 package com.batool.crud.controller;
 
 import com.batool.crud.entity.User;
+import com.batool.crud.entity.UserCreateDTO;
+import com.batool.crud.entity.UserRetrievalDTO;
+import com.batool.crud.entity.UserUpdateDTO;
 import com.batool.crud.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -8,7 +11,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/users")
@@ -19,24 +25,42 @@ public class UserController {
     private UserService userService;
 
     @PostMapping("/create")
-    public User createUser(@RequestBody User user) {
-        return userService.createUser(user);
+    public ResponseEntity<Map<String, String>> createUser(@Valid @RequestBody UserCreateDTO userCreateDTO) {
+        Map<String, String> response = new HashMap<>();
+        try {
+            User createdUser = userService.createUser(userCreateDTO);
+            response.put("message", "User created successfully");
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            response.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
     }
 
     @GetMapping("/get-all")
-    public List<User> getAllUsers() {
-        return userService.getAllUsers();
+    public ResponseEntity<List<UserRetrievalDTO>> getAllUsers() {
+        List<UserRetrievalDTO> allUsers = userService.getAllUsers();
+        return ResponseEntity.ok(allUsers);
     }
 
     @GetMapping("/get-by-id/{id}")
-    public User getUser(@PathVariable Long id) {
-        return userService.getUserById(id);
+    public ResponseEntity<UserRetrievalDTO> getUserById(@PathVariable Long id) {
+        UserRetrievalDTO user =  userService.getUserById(id);
+        return ResponseEntity.ok(user);
+
+    }
+
+    @GetMapping("/get-by-email/{email}")
+    public ResponseEntity<UserRetrievalDTO> getUserByEmail(@PathVariable String email) {
+        UserRetrievalDTO user = userService.getUserByEmail(email);
+        return ResponseEntity.ok(user);
     }
 
     @PutMapping("/update-by-id/{id}")
-    public ResponseEntity<String> updateUserById(@PathVariable Long id, @RequestBody User user) {
+    public ResponseEntity<String> updateUserById(@PathVariable Long id,
+                                                 @Valid @RequestBody UserUpdateDTO userUpdateDTO) {
         try {
-            User updatedUser = userService.updateUserById(id, user);
+            User updatedUser = userService.updateUserById(id, userUpdateDTO);
             return new ResponseEntity<>("User updated successfully", HttpStatus.OK);
         } catch (UsernameNotFoundException e) {
             return new ResponseEntity<>("User not found with id: " + id, HttpStatus.NOT_FOUND);
@@ -46,9 +70,10 @@ public class UserController {
     }
 
     @PutMapping("/update-by-email/{email}")
-    public ResponseEntity<String> updateUserByEmail(@PathVariable String email, @RequestBody User user) {
+    public ResponseEntity<String> updateUserByEmail(@PathVariable String email,
+                                                    @Valid @RequestBody UserUpdateDTO userUpdateDTO) {
         try {
-            User updatedUser = userService.updateUserByEmail(email, user);
+            User updatedUser = userService.updateUserByEmail(email, userUpdateDTO);
             return new ResponseEntity<>("User updated successfully", HttpStatus.OK);
         } catch (UsernameNotFoundException e) {
             return new ResponseEntity<>("User not found with email: " + email, HttpStatus.NOT_FOUND);
