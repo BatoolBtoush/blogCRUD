@@ -35,24 +35,23 @@ public class NewsController {
 
         String authHeader = request.getHeader("Authorization");
         String token = jwtTokenUtil.extractTokenFromAuthHeader(authHeader);
-
         System.out.println("token:: "+ token);
         String email = jwtTokenUtil.getEmailFromToken(token);
         System.out.println("email:: "+ email);
-//        User contentWriter = userRepo.findByEmail(email.toLowerCase());
-//        if (contentWriter == null) {
-//            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
-//        }
-//
-//        News createdNews = newsService.createNews(newsCreateDTO, contentWriter);
-        return ResponseEntity.status(HttpStatus.CREATED).body("createdNews");
+
+        User contentWriter = userRepo.findByEmail(email.toLowerCase());
+        if (contentWriter == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+        }
+        News createdNews = newsService.createNews(newsCreateDTO, contentWriter);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdNews);
 
     }
 
     @GetMapping("/get-all")
     public ResponseEntity<List<NewsFetchDTO>> getAllNews() {
         List<NewsFetchDTO> allNews = newsService.getAllNews();
-        return ResponseEntity.ok(allNews);
+        return ResponseEntity.status(HttpStatus.OK).body(allNews);
     }
 
 }
