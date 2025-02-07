@@ -60,7 +60,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
         Claims claims;
         try {
-            claims = new JwtAuthenticator().validateJwtToken(token, getPublicKeyFromString(publicKey)); //Use custom JwtAuthenticator service to validate token with the correct public key
+            claims = new JwtTokenUtil().validateJwtToken(token, getPublicKeyFromString(publicKey)); //Use custom JwtAuthenticator service to validate token with the correct public key
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         } catch (InvalidKeySpecException e) {

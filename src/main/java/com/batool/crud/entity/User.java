@@ -12,6 +12,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 @Entity
+@Table(name = "users")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -20,16 +21,21 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotNull
-    @NotEmpty
+    @Column(nullable = false)
     private String fullName;
-    @NotNull
-    @NotEmpty
+
+    @Column(nullable = false, unique = true)
     private String email;
-    @NotNull
-    @NotEmpty
+
+    @Column(nullable = false)
     private String password;
+
+    @Column(nullable = false)
+    private String salt;
+
+    @Column(nullable = false)
     private LocalDate dateOfBirth;
+
     @Enumerated(EnumType.STRING)
     private Role role;
 

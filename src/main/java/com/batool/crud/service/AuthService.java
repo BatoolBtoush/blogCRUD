@@ -1,9 +1,12 @@
 package com.batool.crud.service;
 
 
+import com.batool.crud.entity.LoginRequestDTO;
+import com.batool.crud.entity.RegistrationRequestDTO;
 import com.batool.crud.entity.Role;
 import com.batool.crud.entity.User;
 import com.batool.crud.repo.UserRepo;
+import com.batool.crud.security.JwtTokenUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 public class AuthService {
@@ -19,86 +23,117 @@ public class AuthService {
     private UserRepo userRepo;
 
     @Autowired
-    private JwtService jwtService;
+    private JwtTokenUtil jwtTokenUtil;
 
 
 
-    public ResponseEntity<?> registerAdmin(User user){
-        user.setEmail(user.getEmail().toLowerCase());
+    public User registerAdmin(RegistrationRequestDTO registrationRequestDTO){
+        if (userRepo.existsByEmail(registrationRequestDTO.getEmail())) {
+            throw new IllegalArgumentException("Email is already in use");
+        }
+
+        User user = new User();
+        user.setFullName(registrationRequestDTO.getFullName());
+        user.setEmail(registrationRequestDTO.getEmail().toLowerCase());
+        String salt = Hasher.getSalt();
+        user.setSalt(salt);
+        user.setPassword(Hasher.hashPassword(registrationRequestDTO.getPassword()+ salt));
+        user.setDateOfBirth(registrationRequestDTO.getDateOfBirth());
         user.setRole(Role.ROLE_ADMIN);
-        user.setPassword(new Hasher(user.getPassword()).getHash());
         userRepo.save(user);
 
-        return new ResponseEntity<>("registration Successful", HttpStatus.OK);
+        return user;
    }
 
-    public ResponseEntity<?> registerContentWriter(User user){
-        user.setEmail(user.getEmail().toLowerCase());
-        user.setRole(Role.ROLE_CONTENT_WRITER);
-        user.setPassword(new Hasher(user.getPassword()).getHash());
-        userRepo.save(user);
-
-        return new ResponseEntity<>("registration Successful", HttpStatus.OK);
-    }
-
-
-    public ResponseEntity<?> registerNormalUser(User user){
-        user.setEmail(user.getEmail().toLowerCase());
-        user.setRole(Role.ROLE_NORMAL);
-        user.setPassword(new Hasher(user.getPassword()).getHash());
-        userRepo.save(user);
-
-        return new ResponseEntity<>("registration Successful", HttpStatus.OK);
-    }
-
-    public ResponseEntity<Map<String, String>> login(User user) {
-        Map<String, String> response = new HashMap<>();
-
-        User existantUser = checkDBForUserByEmail(user.getEmail());
-
-        if (existantUser == null) {
-            response.put("message", "User not found");
-            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
-
-        } else {
-            if (checkUsersPassword(user)) {
-                String accessToken = jwtService.generateToken(existantUser.getEmail(), JwtService.Tokens.ACCESS_TOKEN);
-                String refreshToken = jwtService.generateToken(existantUser.getEmail(), JwtService.Tokens.REFRESH_TOKEN);
-                response.put("access_token", accessToken);
-                response.put("refresh_token", refreshToken);
-                return new ResponseEntity<>(response, HttpStatus.OK);
-
-            } else {
-                response.put("message", "Incorrect password");
-                return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
-
-            }
+    public User registerContentWriter(RegistrationRequestDTO registrationRequestDTO){
+        if (userRepo.existsByEmail(registrationRequestDTO.getEmail())) {
+            throw new IllegalArgumentException("Email is already in use");
         }
+
+        User user = new User();
+        user.setFullName(registrationRequestDTO.getFullName());
+        user.setEmail(registrationRequestDTO.getEmail().toLowerCase());
+        String salt = Hasher.getSalt();
+        user.setSalt(salt);
+        user.setPassword(Hasher.hashPassword(registrationRequestDTO.getPassword()+ salt));
+        user.setDateOfBirth(registrationRequestDTO.getDateOfBirth());
+        user.setRole(Role.ROLE_CONTENT_WRITER);
+        userRepo.save(user);
+
+        return user;
     }
+
+
+    public User registerNormalUser(RegistrationRequestDTO registrationRequestDTO){
+        if (userRepo.existsByEmail(registrationRequestDTO.getEmail())) {
+            throw new IllegalArgumentException("Email is already in use");
+        }
+
+        User user = new User();
+        user.setFullName(registrationRequestDTO.getFullName());
+        user.setEmail(registrationRequestDTO.getEmail().toLowerCase());
+        String salt = Hasher.getSalt();
+        user.setSalt(salt);
+        user.setPassword(Hasher.hashPassword(registrationRequestDTO.getPassword()+ salt));
+        user.setDateOfBirth(registrationRequestDTO.getDateOfBirth());
+        user.setRole(Role.ROLE_NORMAL);
+        userRepo.save(user);
+
+        return user;
+    }
+
+public ResponseEntity<Map<String, String>> login(LoginRequestDTO loginRequest) {
+    Map<String, String> response = new HashMap<>();
+    User existentUser = userRepo.findByEmail(loginRequest.getEmail().toLowerCase());
+
+    if (existentUser == null) {
+        response.put("message", "User not found");
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+
+    if (!checkUsersPassword(loginRequest)) {
+        response.put("message", "Incorrect password");
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+    }
+
+    String accessToken = jwtTokenUtil.generateToken(existentUser.getEmail(), JwtTokenUtil.Tokens.ACCESS_TOKEN);
+    String refreshToken = jwtTokenUtil.generateToken(existentUser.getEmail(), JwtTokenUtil.Tokens.REFRESH_TOKEN);
+
+    response.put("access_token", accessToken);
+    response.put("refresh_token", refreshToken);
+
+    return ResponseEntity.ok(response);
+}
 
     public User checkDBForUserByEmail(String email) {
         return userRepo.findByEmailIgnoreCase(email);
     }
 
-    public boolean checkUsersPassword(User user) {
-        String passwordHash = new Hasher(user.getPassword()).getHash();
-        return (passwordHash.equals(checkDBForUserByEmail(user.getEmail()).getPassword()));
+    public boolean checkUsersPassword(LoginRequestDTO loginRequest) {
+        User associatedUser = userRepo.findByEmail(loginRequest.getEmail().toLowerCase());
+        if (associatedUser == null) {
+            return false;
+        }
+        String salt = associatedUser.getSalt();
+        String passwordHash = Hasher.hashPassword(loginRequest.getPassword() + salt);
+        return passwordHash.equals(associatedUser.getPassword());
     }
+
 
 
     public ResponseEntity<Map<String, String>> accessTokenFromRefreshToken(String refreshToken) {
         // Check if the refresh token is valid
-        if (jwtService.isValidRefreshToken(refreshToken)) {
+        if (jwtTokenUtil.isValidRefreshToken(refreshToken)) {
 
             // Retrieve user information from the refresh token
-            String userEmail = jwtService.extractEmailFromRefreshTokenJwtService(refreshToken);
+            String userEmail = jwtTokenUtil.getEmailFromToken(refreshToken);
 
             User user = checkDBForUserByEmail(userEmail);
 
             // Check if the user still exists in the database
             if (user != null) {
                 // Generate a new access token
-                String newAccessToken = jwtService.generateAccessTokenFromRefreshToken(refreshToken);
+                String newAccessToken = jwtTokenUtil.generateAccessTokenFromRefreshToken(refreshToken);
 
                 Map<String, String> response = new HashMap<>();
                 response.put("access_token", newAccessToken);
