@@ -5,7 +5,6 @@ import com.batool.crud.repo.UserRepo;
 import com.batool.crud.util.Hasher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -33,10 +32,10 @@ public class UserService {
         return userRepo.save(user);
     }
 
-    public List<UserRetrievalDTO> getAllUsers() {
+    public List<UserFetchDTO> getAllUsers() {
         return userRepo.findAll()
                 .stream()
-                .map(user -> new UserRetrievalDTO(
+                .map(user -> new UserFetchDTO(
                         user.getId(),
                         user.getFullName(),
                         user.getEmail(),
@@ -46,11 +45,11 @@ public class UserService {
                 .collect(Collectors.toList());
     }
 
-    public UserRetrievalDTO getUserById(Long id) {
+    public UserFetchDTO getUserById(Long id) {
         User user = userRepo.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
-        return new UserRetrievalDTO(
+        return new UserFetchDTO(
                 user.getId(),
                 user.getFullName(),
                 user.getEmail(),
@@ -59,12 +58,12 @@ public class UserService {
         );
     }
 
-    public UserRetrievalDTO getUserByEmail(String email) {
+    public UserFetchDTO getUserByEmail(String email) {
         User user = userRepo.findByEmail(email.toLowerCase());
         if (user == null)
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
 
-        return new UserRetrievalDTO(
+        return new UserFetchDTO(
                 user.getId(),
                 user.getFullName(),
                 user.getEmail(),
@@ -77,7 +76,7 @@ public class UserService {
     public User updateUserById(Long id, UserUpdateDTO userUpdateDTO) {
         User existentUser = userRepo.findById(id).orElse(null);
         if (existentUser == null) {
-            throw new UsernameNotFoundException("User not found");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
         }
         if (userUpdateDTO.getFullName() != null && !userUpdateDTO.getFullName().isEmpty()) {
             existentUser.setFullName(userUpdateDTO.getFullName());
@@ -107,7 +106,7 @@ public class UserService {
     public User updateUserByEmail(String email, UserUpdateDTO userUpdateDTO) {
         User existentUser = userRepo.findByEmail(email.toLowerCase());
         if (existentUser == null) {
-            throw new UsernameNotFoundException("User not found");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
         }
         if (userUpdateDTO.getFullName() != null && !userUpdateDTO.getFullName().isEmpty()) {
             existentUser.setFullName(userUpdateDTO.getFullName());
@@ -136,15 +135,15 @@ public class UserService {
     public void deleteUserById(Long id) {
         User existentUser = userRepo.findById(id).orElse(null);
         if (existentUser == null) {
-            throw new UsernameNotFoundException("User not found");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
         }
         userRepo.delete(existentUser);
     }
 
-    public void deleteUserByEmail(String email) throws UsernameNotFoundException {
+    public void deleteUserByEmail(String email) {
         User existentUser = userRepo.findByEmail(email.toLowerCase());
         if (existentUser == null) {
-            throw new UsernameNotFoundException("User not found");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
         }
         userRepo.delete(existentUser);
     }

@@ -153,8 +153,12 @@ public class JwtTokenUtil {
         return getExpirationDateFromToken(token).before(new Date());
     }
 
-//    // Validates token against user details
-//    public boolean validateToken(String token, UserDetails userDetails) {
-//        return !isTokenExpired(token) && userDetails.getUsername().equals(getUsernameFromToken(token));
-//    }
+    public String extractTokenFromAuthHeader(String authHeader) {
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String token = authHeader.replaceAll("Bearer","").trim();;
+            return token;
+        }
+        return null;
+    }
+
 }

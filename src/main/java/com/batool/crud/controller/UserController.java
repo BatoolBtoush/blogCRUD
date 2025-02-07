@@ -2,12 +2,13 @@ package com.batool.crud.controller;
 
 import com.batool.crud.entity.User;
 import com.batool.crud.entity.UserCreateDTO;
-import com.batool.crud.entity.UserRetrievalDTO;
+import com.batool.crud.entity.UserFetchDTO;
 import com.batool.crud.entity.UserUpdateDTO;
 import com.batool.crud.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,7 +19,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/users")
-//@PreAuthorize("hasRole('ROLE_ADMIN')
+@PreAuthorize("hasRole('ROLE_ADMIN')")
 public class UserController {
 
     @Autowired
@@ -38,21 +39,21 @@ public class UserController {
     }
 
     @GetMapping("/get-all")
-    public ResponseEntity<List<UserRetrievalDTO>> getAllUsers() {
-        List<UserRetrievalDTO> allUsers = userService.getAllUsers();
+    public ResponseEntity<List<UserFetchDTO>> getAllUsers() {
+        List<UserFetchDTO> allUsers = userService.getAllUsers();
         return ResponseEntity.ok(allUsers);
     }
 
     @GetMapping("/get-by-id/{id}")
-    public ResponseEntity<UserRetrievalDTO> getUserById(@PathVariable Long id) {
-        UserRetrievalDTO user =  userService.getUserById(id);
+    public ResponseEntity<UserFetchDTO> getUserById(@PathVariable Long id) {
+        UserFetchDTO user =  userService.getUserById(id);
         return ResponseEntity.ok(user);
 
     }
 
     @GetMapping("/get-by-email/{email}")
-    public ResponseEntity<UserRetrievalDTO> getUserByEmail(@PathVariable String email) {
-        UserRetrievalDTO user = userService.getUserByEmail(email);
+    public ResponseEntity<UserFetchDTO> getUserByEmail(@PathVariable String email) {
+        UserFetchDTO user = userService.getUserByEmail(email);
         return ResponseEntity.ok(user);
     }
 
