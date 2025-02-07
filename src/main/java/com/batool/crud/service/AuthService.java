@@ -37,7 +37,7 @@ public class AuthService {
         user.setEmail(registrationRequestDTO.getEmail().toLowerCase());
         String salt = Hasher.getSalt();
         user.setSalt(salt);
-        user.setPassword(Hasher.hashPassword(registrationRequestDTO.getPassword()+ salt));
+        user.setPassword(Hasher.hashPasswordWithSalt(registrationRequestDTO.getPassword(), salt));
         user.setDateOfBirth(registrationRequestDTO.getDateOfBirth());
         user.setRole(Role.ROLE_ADMIN);
         userRepo.save(user);
@@ -55,7 +55,7 @@ public class AuthService {
         user.setEmail(registrationRequestDTO.getEmail().toLowerCase());
         String salt = Hasher.getSalt();
         user.setSalt(salt);
-        user.setPassword(Hasher.hashPassword(registrationRequestDTO.getPassword()+ salt));
+        user.setPassword(Hasher.hashPasswordWithSalt(registrationRequestDTO.getPassword(), salt));
         user.setDateOfBirth(registrationRequestDTO.getDateOfBirth());
         user.setRole(Role.ROLE_CONTENT_WRITER);
         userRepo.save(user);
@@ -74,7 +74,7 @@ public class AuthService {
         user.setEmail(registrationRequestDTO.getEmail().toLowerCase());
         String salt = Hasher.getSalt();
         user.setSalt(salt);
-        user.setPassword(Hasher.hashPassword(registrationRequestDTO.getPassword()+ salt));
+        user.setPassword(Hasher.hashPasswordWithSalt(registrationRequestDTO.getPassword(), salt));
         user.setDateOfBirth(registrationRequestDTO.getDateOfBirth());
         user.setRole(Role.ROLE_NORMAL);
         userRepo.save(user);
@@ -115,7 +115,7 @@ public ResponseEntity<Map<String, String>> login(LoginRequestDTO loginRequest) {
             return false;
         }
         String salt = associatedUser.getSalt();
-        String passwordHash = Hasher.hashPassword(loginRequest.getPassword() + salt);
+        String passwordHash = Hasher.hashPasswordWithSalt(loginRequest.getPassword(), salt);
         return passwordHash.equals(associatedUser.getPassword());
     }
 

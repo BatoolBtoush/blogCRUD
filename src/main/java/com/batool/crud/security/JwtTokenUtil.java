@@ -35,7 +35,7 @@ public class JwtTokenUtil {
 
     public enum Tokens {ACCESS_TOKEN, REFRESH_TOKEN}
 
-    private static final long ACCESS_TOKEN_EXPIRATION = 60000; // 1 minute
+    private static final long ACCESS_TOKEN_EXPIRATION = 60_000; // 1 minute
     private static final long REFRESH_TOKEN_EXPIRATION = 3 * 3600 * 1000; // 3 hours
 
 
