@@ -9,9 +9,6 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface NewsRepo extends JpaRepository<News, Long> {
-//    List<News> findByStatus(NewsStatus newsStatus);
-//    @Query("SELECT n FROM News n WHERE n.deleted = false")
-//    List<News> findAllActiveNews();
 
     @Query("SELECT n FROM News n WHERE n.deleted = false")
     List<News> findAllActiveNews();
