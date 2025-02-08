@@ -1,6 +1,8 @@
 package com.batool.crud.services;
 
 
+import com.batool.crud.customexceptions.InvalidRefreshTokenException;
+import com.batool.crud.customexceptions.UserNotFoundException;
 import com.batool.crud.dtos.LoginRequestDTO;
 import com.batool.crud.dtos.RegistrationRequestDTO;
 import com.batool.crud.enums.Role;
@@ -122,27 +124,22 @@ public ResponseEntity<Map<String, String>> login(LoginRequestDTO loginRequest) {
 
 
     public ResponseEntity<Map<String, String>> accessTokenFromRefreshToken(String refreshToken) {
-        if (jwtTokenUtil.isValidRefreshToken(refreshToken)) {
-            String userEmail = jwtTokenUtil.getEmailFromToken(refreshToken);
-
-            User user = checkDBForUserByEmail(userEmail);
-            if (user != null) {
-                String newAccessToken = jwtTokenUtil.generateAccessTokenFromRefreshToken(refreshToken);
-
-                Map<String, String> response = new HashMap<>();
-                response.put("access_token", newAccessToken);
-
-                return ResponseEntity.ok(response);
-            } else {
-                Map<String, String> errorResponse = new HashMap<>();
-                errorResponse.put("error", "User associated with the refresh token does not exist");
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
-            }
-        } else {
-            Map<String, String> errorResponse = new HashMap<>();
-            errorResponse.put("error", "Invalid refresh token");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
+        if (!jwtTokenUtil.isValidRefreshToken(refreshToken)) {
+            throw new InvalidRefreshTokenException("Invalid refresh token");
         }
+        String userEmail = jwtTokenUtil.getEmailFromToken(refreshToken);
+        User user = checkDBForUserByEmail(userEmail);
+
+        if (user == null) {
+            throw new UserNotFoundException("User associated with the refresh token does not exist");
+        }
+
+        String newAccessToken = jwtTokenUtil.generateAccessTokenFromRefreshToken(refreshToken);
+
+        Map<String, String> response = new HashMap<>();
+        response.put("access_token", newAccessToken);
+
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
 }
