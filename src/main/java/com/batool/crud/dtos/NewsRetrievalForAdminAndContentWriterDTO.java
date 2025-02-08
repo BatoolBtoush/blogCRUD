@@ -1,8 +1,7 @@
 package com.batool.crud.dtos;
 
 
-import com.batool.crud.entities.NewsStatus;
-import com.batool.crud.entities.User;
+import com.batool.crud.enums.NewsStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

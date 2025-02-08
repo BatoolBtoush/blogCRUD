@@ -1,5 +1,6 @@
 package com.batool.crud.entities;
 
+import com.batool.crud.enums.NewsStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -35,8 +36,11 @@ public class News {
     private NewsStatus status;
 
     @ManyToOne
-    @JoinColumn(name = "created_by_id")
+    @JoinColumn(name = "created_by", nullable = false)
     private User createdBy;
+
+    @Column(nullable = false)
+    private boolean deleted = false;
 }
 
 

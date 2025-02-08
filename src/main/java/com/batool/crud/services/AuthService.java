@@ -3,7 +3,7 @@ package com.batool.crud.services;
 
 import com.batool.crud.dtos.LoginRequestDTO;
 import com.batool.crud.dtos.RegistrationRequestDTO;
-import com.batool.crud.entities.Role;
+import com.batool.crud.enums.Role;
 import com.batool.crud.entities.User;
 import com.batool.crud.repos.UserRepo;
 import com.batool.crud.security.JwtTokenUtil;

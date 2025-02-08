@@ -1,6 +1,6 @@
 package com.batool.crud.dtos;
 
-import com.batool.crud.entities.Role;
+import com.batool.crud.enums.Role;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

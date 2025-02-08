@@ -1,6 +1,6 @@
 package com.batool.crud.security;
 
-import com.batool.crud.entities.Role;
+import com.batool.crud.enums.Role;
 import com.batool.crud.entities.User;
 import com.batool.crud.repos.UserRepo;
 import io.jsonwebtoken.Claims;

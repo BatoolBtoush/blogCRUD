@@ -10,9 +10,12 @@ import com.batool.crud.services.NewsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
+import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
@@ -82,17 +85,59 @@ public class NewsController {
         return ResponseEntity.ok(approvedNews);
     }
 
-    @DeleteMapping("/delete/{newsId}")
+
     @PreAuthorize("hasAnyRole('ADMIN', 'ROLE_CONTENT_WRITER')")
-    public ResponseEntity<?> deleteNews(@PathVariable Long newsId,
+    @DeleteMapping("/delete/{newsId}")
+    public ResponseEntity<?> deleteOrRequestNewsDeletion(@PathVariable Long newsId,
                                         HttpServletRequest request) {
 
         String authHeader = request.getHeader("Authorization");
         String token = jwtTokenUtil.extractTokenFromAuthHeader(authHeader);
         String email = jwtTokenUtil.getEmailFromToken(token);
-        newsService.deleteNews(newsId, email);
+        try{
+            newsService.deleteOrRequestNewsDeletion(newsId, email);
+            return new ResponseEntity<>("News item deleted successfully", HttpStatus.OK);
+        }catch (EntityNotFoundException e){
+            return new ResponseEntity<>("News not found", HttpStatus.NOT_FOUND);
+        }catch (IllegalStateException e){
+            return new ResponseEntity<>("A deletion request is already pending for this news.", HttpStatus.CONFLICT);
+        }catch (ResponseStatusException e){
+            return new ResponseEntity<>("Delete request has been submitted for admin approval.", HttpStatus.ACCEPTED);
+        }catch (AccessDeniedException e){
+            return new ResponseEntity<>("You are not allowed to delete this news item.", HttpStatus.UNAUTHORIZED);
+        }
+    }
 
-        return ResponseEntity.ok("News item deleted successfully");
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @GetMapping("/get-all-deletion-requests")
+    public ResponseEntity<List<NewsDeletionRequest>> getAllDeletionRequests(){
+        List<NewsDeletionRequest> allNewsDeletionRequests = newsService.getAllDeletionRequests();
+        return ResponseEntity.status(HttpStatus.OK).body(allNewsDeletionRequests);
+    }
+
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/process-deletion-request/{requestId}")
+    public ResponseEntity<String> processDeletionRequest(
+            @PathVariable Long requestId,
+            @RequestParam boolean approve,
+            HttpServletRequest request) {
+
+        String authHeader = request.getHeader("Authorization");
+        String token = jwtTokenUtil.extractTokenFromAuthHeader(authHeader);
+        String email = jwtTokenUtil.getEmailFromToken(token);
+
+        try{
+            newsService.processDeletionRequest(requestId, approve, email);
+            String message = approve ? "Deletion request approved. News has been soft deleted." :
+                    "Deletion request rejected. News remains.";
+            return ResponseEntity.ok(message);
+
+        }catch (AccessDeniedException e){
+            return new ResponseEntity<>("Only admins can process deletion requests.", HttpStatus.NOT_ACCEPTABLE);
+        }catch (EntityNotFoundException e){
+            return new ResponseEntity<>("News not found", HttpStatus.NOT_FOUND);
+        }
     }
 
 }
