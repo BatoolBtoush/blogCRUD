@@ -1,5 +1,6 @@
 package com.batool.crud.globalexceptionhandlers;
 
+import com.batool.crud.customexceptions.EmailAlreadyExistsException;
 import com.batool.crud.customexceptions.InvalidPublicKeyException;
 import com.batool.crud.customexceptions.InvalidRefreshTokenException;
 import com.batool.crud.customexceptions.UserNotFoundException;
@@ -60,6 +61,11 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, String>> handleUserNotFound(UserNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(EmailAlreadyExistsException.class)
+    public ResponseEntity<Map<String, String>> handleEmailAlreadyExists(EmailAlreadyExistsException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", ex.getMessage()));
     }
 }
 

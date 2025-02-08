@@ -1,5 +1,7 @@
 package com.batool.crud.security;
 
+import com.batool.crud.customexceptions.InvalidTokenException;
+import com.batool.crud.customexceptions.TokenExpiredException;
 import com.batool.crud.enums.Role;
 import com.batool.crud.entities.User;
 import com.batool.crud.repos.UserRepo;
@@ -61,8 +63,16 @@ public class JwtFilter extends OncePerRequestFilter {
         try {
             claims = new JwtTokenUtil().validateJwtToken(token, getPublicKeyFromString(publicKey));
         } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
-            throw new RuntimeException(e);
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error processing public key");
+            return;
+        } catch (TokenExpiredException e) {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token has expired");
+            return;
+        } catch (InvalidTokenException e) {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid JWT token");
+            return;
         }
+
         if(claims == null) {
             chain.doFilter(request, response);
             return;

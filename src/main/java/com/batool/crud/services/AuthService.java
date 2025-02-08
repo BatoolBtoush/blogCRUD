@@ -1,6 +1,7 @@
 package com.batool.crud.services;
 
 
+import com.batool.crud.customexceptions.EmailAlreadyExistsException;
 import com.batool.crud.customexceptions.InvalidRefreshTokenException;
 import com.batool.crud.customexceptions.UserNotFoundException;
 import com.batool.crud.dtos.LoginRequestDTO;
@@ -30,8 +31,10 @@ public class AuthService {
 
 
     public User registerAdmin(RegistrationRequestDTO registrationRequestDTO){
-        if (userRepo.existsByEmail(registrationRequestDTO.getEmail().toLowerCase())) {
-            throw new IllegalArgumentException("Email is already in use");
+        String email = registrationRequestDTO.getEmail().toLowerCase();
+
+        if (userRepo.existsByEmail(email)) {
+            throw new EmailAlreadyExistsException("Email is already in use");
         }
 
         User user = new User();
@@ -42,14 +45,14 @@ public class AuthService {
         user.setPassword(Hasher.hashPasswordWithSalt(registrationRequestDTO.getPassword(), salt));
         user.setDateOfBirth(registrationRequestDTO.getDateOfBirth());
         user.setRole(Role.ROLE_ADMIN);
-        userRepo.save(user);
-
-        return user;
+        return userRepo.save(user);
    }
 
     public User registerContentWriter(RegistrationRequestDTO registrationRequestDTO){
-        if (userRepo.existsByEmail(registrationRequestDTO.getEmail().toLowerCase())) {
-            throw new IllegalArgumentException("Email is already in use");
+        String email = registrationRequestDTO.getEmail().toLowerCase();
+
+        if (userRepo.existsByEmail(email)) {
+            throw new EmailAlreadyExistsException("Email is already in use");
         }
 
         User user = new User();
@@ -60,15 +63,15 @@ public class AuthService {
         user.setPassword(Hasher.hashPasswordWithSalt(registrationRequestDTO.getPassword(), salt));
         user.setDateOfBirth(registrationRequestDTO.getDateOfBirth());
         user.setRole(Role.ROLE_CONTENT_WRITER);
-        userRepo.save(user);
-
-        return user;
+        return userRepo.save(user);
     }
 
 
     public User registerNormalUser(RegistrationRequestDTO registrationRequestDTO){
-        if (userRepo.existsByEmail(registrationRequestDTO.getEmail().toLowerCase())) {
-            throw new IllegalArgumentException("Email is already in use");
+        String email = registrationRequestDTO.getEmail().toLowerCase();
+
+        if (userRepo.existsByEmail(email)) {
+            throw new EmailAlreadyExistsException("Email is already in use");
         }
 
         User user = new User();
@@ -79,9 +82,7 @@ public class AuthService {
         user.setPassword(Hasher.hashPasswordWithSalt(registrationRequestDTO.getPassword(), salt));
         user.setDateOfBirth(registrationRequestDTO.getDateOfBirth());
         user.setRole(Role.ROLE_NORMAL);
-        userRepo.save(user);
-
-        return user;
+        return userRepo.save(user);
     }
 
 public ResponseEntity<Map<String, String>> login(LoginRequestDTO loginRequest) {

@@ -2,6 +2,8 @@ package com.batool.crud.security;
 
 import com.batool.crud.customexceptions.InvalidPublicKeyException;
 import com.batool.crud.customexceptions.InvalidRefreshTokenException;
+import com.batool.crud.customexceptions.InvalidTokenException;
+import com.batool.crud.customexceptions.TokenExpiredException;
 import com.batool.crud.entities.User;
 import com.batool.crud.repos.UserRepo;
 import io.jsonwebtoken.*;
@@ -99,11 +101,9 @@ public class JwtTokenUtil {
                     .parseSignedClaims(token);
             return claimsEntity.getPayload();
         } catch (ExpiredJwtException expiredException) {
-            // Token has expired
-            System.out.println("Token has expired");
-            return null;
+            throw new TokenExpiredException("Token has expired");
         } catch (JwtException | IllegalArgumentException e) {
-            return null;
+            throw new InvalidTokenException("Invalid JWT token", e);
         }
     }
 
