@@ -3,10 +3,12 @@ package com.batool.crud.globalexceptionhandlers;
 import com.batool.crud.customexceptions.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import javax.persistence.EntityNotFoundException;
 import java.sql.SQLSyntaxErrorException;
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -81,6 +83,26 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IllegalStateException.class)
     public ResponseEntity<Map<String, String>> handleIllegalStateException(IllegalStateException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<String> handleEntityNotFoundException(EntityNotFoundException ex) {
+        return new ResponseEntity<>("Error: " + ex.getMessage(), HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(NewsDeletionRequestException.class)
+    public ResponseEntity<String> handleNewsDeletionRequestException(NewsDeletionRequestException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.ACCEPTED);
+    }
+
+    @ExceptionHandler(NewsDeletionNotAllowedException.class)
+    public ResponseEntity<String> handleNewsDeletionNotAllowedException(NewsDeletionNotAllowedException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<String> handleAccessDeniedException(AccessDeniedException ex) {
+        return new ResponseEntity<>("Access Denied: " + ex.getMessage(), HttpStatus.FORBIDDEN);
     }
 }
 

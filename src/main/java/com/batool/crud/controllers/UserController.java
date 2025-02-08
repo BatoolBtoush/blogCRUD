@@ -36,7 +36,7 @@ public class UserController {
         try {
             userService.createUser(userCreationDTO);
             response.put("message", "User created successfully");
-            return new ResponseEntity<>(response, HttpStatus.OK);
+            return new ResponseEntity<>(response, HttpStatus.CREATED);
         } catch (Exception e) {
             response.put("message", e.getMessage());
             return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
