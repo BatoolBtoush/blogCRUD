@@ -33,7 +33,7 @@ public class NewsService {
     @Autowired
     private NewsDeletionRequestRepo newsDeletionRequestRepo;
 
-    public News createNews(NewsCreationDTO newsCreationDTO, User contentWriter) {
+    public void createNews(NewsCreationDTO newsCreationDTO, User contentWriter) {
         News news = new News();
         news.setTitle(newsCreationDTO.getTitle());
         news.setArabicTitle(newsCreationDTO.getArabicTitle());
@@ -43,7 +43,7 @@ public class NewsService {
         news.setImageUrl(newsCreationDTO.getImageUrl());
         news.setStatus(NewsStatus.PENDING);
         news.setCreatedBy(contentWriter);
-        return newsRepo.save(news);
+        newsRepo.save(news);
 
     }
 

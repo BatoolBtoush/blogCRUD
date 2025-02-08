@@ -1,5 +1,6 @@
 package com.batool.crud.controllers;
 
+import com.batool.crud.customexceptions.UserNotFoundException;
 import com.batool.crud.dtos.NewsCreationDTO;
 import com.batool.crud.dtos.NewsRetrievalForAdminAndContentWriterDTO;
 import com.batool.crud.dtos.NewsRetrievalForNormalUserDTO;
@@ -39,16 +40,14 @@ public class NewsController {
 
         String authHeader = request.getHeader("Authorization");
         String token = jwtTokenUtil.extractTokenFromAuthHeader(authHeader);
-        System.out.println("token:: "+ token);
         String email = jwtTokenUtil.getEmailFromToken(token);
-        System.out.println("email:: "+ email);
 
         User contentWriter = userRepo.findByEmail(email.toLowerCase());
         if (contentWriter == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+            throw new UserNotFoundException("User with email " + email + " not found");
         }
-        News createdNews = newsService.createNews(newsCreationDTO, contentWriter);
-        return ResponseEntity.status(HttpStatus.CREATED).body("News created successfully");
+        newsService.createNews(newsCreationDTO, contentWriter);
+        return new ResponseEntity<>("News created successfully", HttpStatus.CREATED);
 
     }
 
@@ -57,7 +56,7 @@ public class NewsController {
     @GetMapping("/get-all")
     public ResponseEntity<List<NewsRetrievalForAdminAndContentWriterDTO>> getAllNews(HttpServletRequest request) {
         List<NewsRetrievalForAdminAndContentWriterDTO> allNews = newsService.getAllNews();
-        return ResponseEntity.status(HttpStatus.OK).body(allNews);
+        return new ResponseEntity<>(allNews, HttpStatus.OK);
     }
 
 
@@ -79,6 +78,7 @@ public class NewsController {
         return ResponseEntity.ok(approvedNews);
     }
 
+    @PreAuthorize("hasRole('ROLE_NORMAL')")
     @GetMapping("/get-approved")
     public ResponseEntity<List<NewsRetrievalForNormalUserDTO>> getApprovedNews() {
         List<NewsRetrievalForNormalUserDTO> approvedNews = newsService.getApprovedNews();

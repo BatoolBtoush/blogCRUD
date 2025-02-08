@@ -1,5 +1,7 @@
 package com.batool.crud.services;
 
+import com.batool.crud.customexceptions.EmailAlreadyExistsException;
+import com.batool.crud.customexceptions.UserNotFoundException;
 import com.batool.crud.dtos.UserCreationDTO;
 import com.batool.crud.dtos.UserRetrievalDTO;
 import com.batool.crud.dtos.UserUpdateDTO;
@@ -20,9 +22,9 @@ public class UserService {
     @Autowired
     private UserRepo userRepo;
 
-    public User createUser(UserCreationDTO userCreationDTO) {
+    public void createUser(UserCreationDTO userCreationDTO) {
         if (userRepo.existsByEmail(userCreationDTO.getEmail().toLowerCase())) {
-            throw new IllegalArgumentException("Email is already in use");
+            throw new EmailAlreadyExistsException("Email is already in use");
         }
         User user = new User();
         user.setFullName(userCreationDTO.getFullName());
@@ -32,7 +34,7 @@ public class UserService {
         user.setPassword(Hasher.hashPasswordWithSalt(userCreationDTO.getPassword(), salt));
         user.setDateOfBirth(userCreationDTO.getDateOfBirth());
         user.setRole(userCreationDTO.getRole());
-        return userRepo.save(user);
+        userRepo.save(user);
     }
 
     public List<UserRetrievalDTO> getAllUsers() {
@@ -50,7 +52,7 @@ public class UserService {
 
     public UserRetrievalDTO getUserById(Long id) {
         User user = userRepo.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
 
         return new UserRetrievalDTO(
                 user.getId(),
@@ -64,7 +66,7 @@ public class UserService {
     public UserRetrievalDTO getUserByEmail(String email) {
         User user = userRepo.findByEmail(email.toLowerCase());
         if (user == null)
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
+            throw new UserNotFoundException("User with email " + email + " not found");
 
         return new UserRetrievalDTO(
                 user.getId(),
@@ -76,10 +78,10 @@ public class UserService {
     }
 
 
-    public User updateUserById(Long id, UserUpdateDTO userUpdateDTO) {
+    public void updateUserById(Long id, UserUpdateDTO userUpdateDTO) {
         User existentUser = userRepo.findById(id).orElse(null);
         if (existentUser == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
+            throw new UserNotFoundException("User not found");
         }
         if (userUpdateDTO.getFullName() != null && !userUpdateDTO.getFullName().isEmpty()) {
             existentUser.setFullName(userUpdateDTO.getFullName());
@@ -87,7 +89,7 @@ public class UserService {
         if (userUpdateDTO.getEmail() != null && !userUpdateDTO.getEmail().isEmpty()) {
             String newEmail = userUpdateDTO.getEmail().toLowerCase();
             if (!newEmail.equals(existentUser.getEmail()) && userRepo.existsByEmail(newEmail)) {
-                throw new IllegalArgumentException("Email is already in use");
+                throw new EmailAlreadyExistsException("Email is already in use");
             }
             existentUser.setEmail(userUpdateDTO.getEmail());
         }
@@ -102,14 +104,14 @@ public class UserService {
         if (userUpdateDTO.getRole() != null) {
             existentUser.setRole(userUpdateDTO.getRole());
         }
-        return userRepo.save(existentUser);
+        userRepo.save(existentUser);
     }
 
 
-    public User updateUserByEmail(String email, UserUpdateDTO userUpdateDTO) {
+    public void updateUserByEmail(String email, UserUpdateDTO userUpdateDTO) {
         User existentUser = userRepo.findByEmail(email.toLowerCase());
         if (existentUser == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
+            throw new UserNotFoundException("User not found");
         }
         if (userUpdateDTO.getFullName() != null && !userUpdateDTO.getFullName().isEmpty()) {
             existentUser.setFullName(userUpdateDTO.getFullName());
@@ -117,7 +119,7 @@ public class UserService {
         if (userUpdateDTO.getEmail() != null && !userUpdateDTO.getEmail().isEmpty()) {
             String newEmail = userUpdateDTO.getEmail().toLowerCase();
             if (!newEmail.equals(existentUser.getEmail()) && userRepo.existsByEmail(newEmail)) {
-                throw new IllegalArgumentException("Email is already in use");
+                throw new EmailAlreadyExistsException("Email is already in use");
             }
             existentUser.setEmail(userUpdateDTO.getEmail());
         }
@@ -132,21 +134,13 @@ public class UserService {
         if (userUpdateDTO.getRole() != null) {
             existentUser.setRole(userUpdateDTO.getRole());
         }
-        return userRepo.save(existentUser);
+        userRepo.save(existentUser);
     }
 
     public void deleteUserById(Long id) {
         User existentUser = userRepo.findById(id).orElse(null);
         if (existentUser == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
-        }
-        userRepo.delete(existentUser);
-    }
-
-    public void deleteUserByEmail(String email) {
-        User existentUser = userRepo.findByEmail(email.toLowerCase());
-        if (existentUser == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
+            throw new UserNotFoundException("User not found");
         }
         userRepo.delete(existentUser);
     }
