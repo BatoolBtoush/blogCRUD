@@ -1,4 +1,4 @@
-package com.batool.crud.entity;
+package com.batool.crud.dtos;
 
 import lombok.Data;
 

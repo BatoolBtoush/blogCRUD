@@ -1,4 +1,4 @@
-package com.batool.crud.entity;
+package com.batool.crud.entities;
 
 public enum Role {
     ROLE_NORMAL,

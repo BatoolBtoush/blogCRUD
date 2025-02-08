@@ -1,5 +1,6 @@
-package com.batool.crud.entity;
+package com.batool.crud.dtos;
 
+import com.batool.crud.entities.Role;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -9,7 +10,7 @@ import java.time.LocalDate;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserFetchDTO {
+public class UserRetrievalDTO {
 
     private Long id;
 

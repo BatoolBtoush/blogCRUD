@@ -1,8 +1,8 @@
 package com.batool.crud.security;
 
-import com.batool.crud.entity.Role;
-import com.batool.crud.entity.User;
-import com.batool.crud.repo.UserRepo;
+import com.batool.crud.entities.Role;
+import com.batool.crud.entities.User;
+import com.batool.crud.repos.UserRepo;
 import io.jsonwebtoken.Claims;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,7 +28,6 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.ArrayList;
 import java.util.Base64;
-import java.util.Collection;
 import java.util.List;
 
 @Component

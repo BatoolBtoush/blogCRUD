@@ -1,18 +1,18 @@
-package com.batool.crud.entity;
+package com.batool.crud.dtos;
 
 
+import com.batool.crud.entities.NewsStatus;
+import com.batool.crud.entities.User;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class NewsFetchDTO {
+public class NewsRetrievalForAdminAndContentWriterDTO {
     private Long id;
 
     private String title;
@@ -29,6 +29,6 @@ public class NewsFetchDTO {
 
     private NewsStatus status;
 
-    private User createdBy;
+    private UserSummaryDTO createdBy;
 
 }

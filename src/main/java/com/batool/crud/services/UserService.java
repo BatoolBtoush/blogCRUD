@@ -1,7 +1,10 @@
-package com.batool.crud.service;
+package com.batool.crud.services;
 
-import com.batool.crud.entity.*;
-import com.batool.crud.repo.UserRepo;
+import com.batool.crud.dtos.UserCreationDTO;
+import com.batool.crud.dtos.UserRetrievalDTO;
+import com.batool.crud.dtos.UserUpdateDTO;
+import com.batool.crud.entities.*;
+import com.batool.crud.repos.UserRepo;
 import com.batool.crud.util.Hasher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -17,25 +20,25 @@ public class UserService {
     @Autowired
     private UserRepo userRepo;
 
-    public User createUser(UserCreateDTO userCreateDTO) {
-        if (userRepo.existsByEmail(userCreateDTO.getEmail().toLowerCase())) {
+    public User createUser(UserCreationDTO userCreationDTO) {
+        if (userRepo.existsByEmail(userCreationDTO.getEmail().toLowerCase())) {
             throw new IllegalArgumentException("Email is already in use");
         }
         User user = new User();
-        user.setFullName(userCreateDTO.getFullName());
-        user.setEmail(userCreateDTO.getEmail().toLowerCase());
+        user.setFullName(userCreationDTO.getFullName());
+        user.setEmail(userCreationDTO.getEmail().toLowerCase());
         String salt = Hasher.getSalt();
         user.setSalt(salt);
-        user.setPassword(Hasher.hashPasswordWithSalt(userCreateDTO.getPassword(), salt));
-        user.setDateOfBirth(userCreateDTO.getDateOfBirth());
-        user.setRole(userCreateDTO.getRole());
+        user.setPassword(Hasher.hashPasswordWithSalt(userCreationDTO.getPassword(), salt));
+        user.setDateOfBirth(userCreationDTO.getDateOfBirth());
+        user.setRole(userCreationDTO.getRole());
         return userRepo.save(user);
     }
 
-    public List<UserFetchDTO> getAllUsers() {
+    public List<UserRetrievalDTO> getAllUsers() {
         return userRepo.findAll()
                 .stream()
-                .map(user -> new UserFetchDTO(
+                .map(user -> new UserRetrievalDTO(
                         user.getId(),
                         user.getFullName(),
                         user.getEmail(),
@@ -45,11 +48,11 @@ public class UserService {
                 .collect(Collectors.toList());
     }
 
-    public UserFetchDTO getUserById(Long id) {
+    public UserRetrievalDTO getUserById(Long id) {
         User user = userRepo.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
-        return new UserFetchDTO(
+        return new UserRetrievalDTO(
                 user.getId(),
                 user.getFullName(),
                 user.getEmail(),
@@ -58,12 +61,12 @@ public class UserService {
         );
     }
 
-    public UserFetchDTO getUserByEmail(String email) {
+    public UserRetrievalDTO getUserByEmail(String email) {
         User user = userRepo.findByEmail(email.toLowerCase());
         if (user == null)
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
 
-        return new UserFetchDTO(
+        return new UserRetrievalDTO(
                 user.getId(),
                 user.getFullName(),
                 user.getEmail(),

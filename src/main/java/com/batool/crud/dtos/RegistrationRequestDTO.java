@@ -1,4 +1,4 @@
-package com.batool.crud.entity;
+package com.batool.crud.dtos;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
@@ -7,7 +7,8 @@ import javax.validation.constraints.*;
 import java.time.LocalDate;
 
 @Data
-public class UserCreateDTO {
+public class RegistrationRequestDTO {
+
     @NotBlank(message = "Full name is required")
     @Size(min = 3, message = "Full name must be at least 3 characters long")
     private String fullName;
@@ -28,7 +29,4 @@ public class UserCreateDTO {
     @JsonFormat(pattern = "yyyy-MM-dd")
     @Past(message = "Date of birth must be in the past")
     private LocalDate dateOfBirth;
-
-    @NotNull(message = "Role is required")
-    private Role role;
 }

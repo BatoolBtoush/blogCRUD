@@ -1,9 +1,9 @@
-package com.batool.crud.controller;
+package com.batool.crud.controllers;
 
-import com.batool.crud.entity.LoginRequestDTO;
-import com.batool.crud.entity.RegistrationRequestDTO;
-import com.batool.crud.entity.User;
-import com.batool.crud.service.AuthService;
+import com.batool.crud.dtos.LoginRequestDTO;
+import com.batool.crud.dtos.RegistrationRequestDTO;
+import com.batool.crud.entities.User;
+import com.batool.crud.services.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

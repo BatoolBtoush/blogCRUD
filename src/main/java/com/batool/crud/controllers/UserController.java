@@ -1,10 +1,10 @@
-package com.batool.crud.controller;
+package com.batool.crud.controllers;
 
-import com.batool.crud.entity.User;
-import com.batool.crud.entity.UserCreateDTO;
-import com.batool.crud.entity.UserFetchDTO;
-import com.batool.crud.entity.UserUpdateDTO;
-import com.batool.crud.service.UserService;
+import com.batool.crud.entities.User;
+import com.batool.crud.dtos.UserCreationDTO;
+import com.batool.crud.dtos.UserRetrievalDTO;
+import com.batool.crud.dtos.UserUpdateDTO;
+import com.batool.crud.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,10 +26,10 @@ public class UserController {
     private UserService userService;
 
     @PostMapping("/create")
-    public ResponseEntity<Map<String, String>> createUser(@Valid @RequestBody UserCreateDTO userCreateDTO) {
+    public ResponseEntity<Map<String, String>> createUser(@Valid @RequestBody UserCreationDTO userCreationDTO) {
         Map<String, String> response = new HashMap<>();
         try {
-            User createdUser = userService.createUser(userCreateDTO);
+            User createdUser = userService.createUser(userCreationDTO);
             response.put("message", "User created successfully");
             return ResponseEntity.ok(response);
         } catch (IllegalArgumentException e) {
@@ -39,21 +39,21 @@ public class UserController {
     }
 
     @GetMapping("/get-all")
-    public ResponseEntity<List<UserFetchDTO>> getAllUsers() {
-        List<UserFetchDTO> allUsers = userService.getAllUsers();
+    public ResponseEntity<List<UserRetrievalDTO>> getAllUsers() {
+        List<UserRetrievalDTO> allUsers = userService.getAllUsers();
         return ResponseEntity.ok(allUsers);
     }
 
     @GetMapping("/get-by-id/{id}")
-    public ResponseEntity<UserFetchDTO> getUserById(@PathVariable Long id) {
-        UserFetchDTO user =  userService.getUserById(id);
+    public ResponseEntity<UserRetrievalDTO> getUserById(@PathVariable Long id) {
+        UserRetrievalDTO user =  userService.getUserById(id);
         return ResponseEntity.ok(user);
 
     }
 
     @GetMapping("/get-by-email/{email}")
-    public ResponseEntity<UserFetchDTO> getUserByEmail(@PathVariable String email) {
-        UserFetchDTO user = userService.getUserByEmail(email);
+    public ResponseEntity<UserRetrievalDTO> getUserByEmail(@PathVariable String email) {
+        UserRetrievalDTO user = userService.getUserByEmail(email);
         return ResponseEntity.ok(user);
     }
 

@@ -1,7 +1,7 @@
 package com.batool.crud.security;
 
-import com.batool.crud.entity.User;
-import com.batool.crud.repo.UserRepo;
+import com.batool.crud.entities.User;
+import com.batool.crud.repos.UserRepo;
 import io.jsonwebtoken.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;

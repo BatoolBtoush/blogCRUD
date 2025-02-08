@@ -1,4 +1,4 @@
-package com.batool.crud.entity;
+package com.batool.crud.dtos;
 
 
 import lombok.Data;
@@ -8,7 +8,7 @@ import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
 
 @Data
-public class NewsCreateDTO {
+public class NewsCreationDTO {
 
     @NotBlank(message = "Title is required")
     private String title;

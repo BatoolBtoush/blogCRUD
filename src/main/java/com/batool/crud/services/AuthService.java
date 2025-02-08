@@ -1,11 +1,11 @@
-package com.batool.crud.service;
+package com.batool.crud.services;
 
 
-import com.batool.crud.entity.LoginRequestDTO;
-import com.batool.crud.entity.RegistrationRequestDTO;
-import com.batool.crud.entity.Role;
-import com.batool.crud.entity.User;
-import com.batool.crud.repo.UserRepo;
+import com.batool.crud.dtos.LoginRequestDTO;
+import com.batool.crud.dtos.RegistrationRequestDTO;
+import com.batool.crud.entities.Role;
+import com.batool.crud.entities.User;
+import com.batool.crud.repos.UserRepo;
 import com.batool.crud.security.JwtTokenUtil;
 import com.batool.crud.util.Hasher;
 import org.springframework.beans.factory.annotation.Autowired;
