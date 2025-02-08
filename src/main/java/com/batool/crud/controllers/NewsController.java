@@ -37,10 +37,7 @@ public class NewsController {
     @PostMapping("/create")
     public ResponseEntity<?> createNews(@RequestBody NewsCreationDTO newsCreationDTO,
                                         HttpServletRequest request) {
-
-        String authHeader = request.getHeader("Authorization");
-        String token = jwtTokenUtil.extractTokenFromAuthHeader(authHeader);
-        String email = jwtTokenUtil.getEmailFromToken(token);
+        String email = jwtTokenUtil.getEmailFromTokenHTTPRequest(request);
 
         User contentWriter = userRepo.findByEmail(email.toLowerCase());
         if (contentWriter == null) {

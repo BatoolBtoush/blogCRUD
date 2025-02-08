@@ -6,6 +6,7 @@ import com.batool.crud.dtos.UserCreationDTO;
 import com.batool.crud.dtos.UserRetrievalDTO;
 import com.batool.crud.dtos.UserUpdateDTO;
 import com.batool.crud.entities.*;
+import com.batool.crud.repos.NewsRepo;
 import com.batool.crud.repos.UserRepo;
 import com.batool.crud.util.Hasher;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +22,9 @@ public class UserService {
 
     @Autowired
     private UserRepo userRepo;
+
+    @Autowired
+    private NewsRepo newsRepo;
 
     public void createUser(UserCreationDTO userCreationDTO) {
         if (userRepo.existsByEmail(userCreationDTO.getEmail().toLowerCase())) {
@@ -141,6 +145,10 @@ public class UserService {
         User existentUser = userRepo.findById(id).orElse(null);
         if (existentUser == null) {
             throw new UserNotFoundException("User not found");
+        }
+        List<News> associatedNews = newsRepo.findByCreatedBy(existentUser);
+        if (!associatedNews.isEmpty()) {
+            throw new IllegalStateException("Cannot delete user with news associated with them.");
         }
         userRepo.delete(existentUser);
     }

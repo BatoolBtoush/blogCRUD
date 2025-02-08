@@ -23,6 +23,7 @@ import java.util.Date;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 
+import javax.servlet.http.HttpServletRequest;
 import java.security.PublicKey;
 
 @Component
@@ -86,6 +87,12 @@ public class JwtTokenUtil {
 
     public String getEmailFromToken(String token) {
         return getClaimsFromToken(token).getSubject();
+    }
+
+    public String getEmailFromTokenHTTPRequest(HttpServletRequest request) {
+        String authHeader = request.getHeader("Authorization");
+        String token = extractTokenFromAuthHeader(authHeader);
+        return getEmailFromToken(token);
     }
 
     public Date getExpirationDateFromToken(String token) {
