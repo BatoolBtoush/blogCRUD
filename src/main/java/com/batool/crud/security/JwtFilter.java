@@ -44,31 +44,31 @@ public class JwtFilter extends OncePerRequestFilter {
     private UserRepo userRepo;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws ServletException, IOException, IOException {
-        final String header = request.getHeader(HttpHeaders.AUTHORIZATION); //Parse Authorization header from request
-        if(header == null) { //Check if header exists
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws ServletException, IOException {
+        final String header = request.getHeader(HttpHeaders.AUTHORIZATION);
+        if(header == null) {
             chain.doFilter(request, response);
             return;
         }
-        if ((header).isEmpty() || !header.startsWith("Bearer ")) { //Check if the header is in proper format
+        if ((header).isEmpty() || !header.startsWith("Bearer ")) {
             chain.doFilter(request, response);
             return;
         }
 
-        String token = header.replace("Bearer ", ""); //Parse JWT token from request
+        String token = header.replace("Bearer ", "");
 
         Claims claims;
         try {
-            claims = new JwtTokenUtil().validateJwtToken(token, getPublicKeyFromString(publicKey)); //Use custom JwtAuthenticator service to validate token with the correct public key
+            claims = new JwtTokenUtil().validateJwtToken(token, getPublicKeyFromString(publicKey));
         } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
             throw new RuntimeException(e);
         }
-        if(claims == null) { //Check if information parsed by the JWT is valid
+        if(claims == null) {
             chain.doFilter(request, response);
             return;
         }
         User user = userRepo.findByEmail(claims.get("email", String.class));
-        if(user == null){ //Check if username exists in class
+        if(user == null){
             chain.doFilter(request, response);
             return;
         }
