@@ -133,9 +133,9 @@ public class JwtTokenUtil {
             return !expirationDate.before(now);
         } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
             throw new RuntimeException(e);
-        } catch (ExpiredJwtException e) {
-            System.out.println("token has expired");        }
-        return false;
+        } catch (TokenExpiredException | InvalidTokenException e) {
+            return false;
+        }
     }
 
 

@@ -126,7 +126,7 @@ public ResponseEntity<Map<String, String>> login(LoginRequestDTO loginRequest) {
 
     public ResponseEntity<Map<String, String>> accessTokenFromRefreshToken(String refreshToken) {
         if (!jwtTokenUtil.isValidRefreshToken(refreshToken)) {
-            throw new InvalidRefreshTokenException("Invalid refresh token");
+            throw new InvalidRefreshTokenException("Refresh token is invalid or has expired");
         }
         String userEmail = jwtTokenUtil.getEmailFromToken(refreshToken);
         User user = checkDBForUserByEmail(userEmail);
