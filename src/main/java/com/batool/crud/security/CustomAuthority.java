@@ -3,7 +3,7 @@ package com.batool.crud.security;
 import org.springframework.security.core.GrantedAuthority;
 
 public class CustomAuthority implements GrantedAuthority {
-    private String authority;
+    private final String authority;
 
     public CustomAuthority(String authority) {
         this.authority = authority;

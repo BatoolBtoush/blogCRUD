@@ -2,48 +2,44 @@ package com.batool.crud.exception;
 
 import org.json.JSONObject;
 import org.springframework.http.HttpStatus;
-import org.springframework.validation.FieldError;
-import org.springframework.validation.ObjectError;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import javax.validation.ValidationException;
+import java.sql.SQLSyntaxErrorException;
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-
-    @ExceptionHandler({MethodArgumentNotValidException.class, ValidationException.class})
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ResponseBody
-    public String handleValidationException(Exception exception) {
-
-        final String[] errors = {""};
-
-        if (exception instanceof MethodArgumentNotValidException){
-            MethodArgumentNotValidException methodArgumentNotValidException = (MethodArgumentNotValidException) exception;
-            methodArgumentNotValidException.getBindingResult().getAllErrors().forEach((error) -> {
-                if (error instanceof FieldError) {
-                    String errorMessage = error.getDefaultMessage();
-                    errors[0] = new JSONObject().put("message",errorMessage).toString();
-                } else if (error instanceof ObjectError) {
-                    String errorMessage = error.getDefaultMessage();
-                    errors[0]  = new JSONObject().put("message",errorMessage).toString();
-                }
-            });
-        }
-        else if (exception instanceof ValidationException) {
-            ValidationException validationEx = (ValidationException) exception;
-            errors[0] = new JSONObject().put("message", validationEx.getMessage()).toString();
-        }
-
-        return errors[0];
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
+        Map<String, String> errors = new HashMap<>();
+        ex.getBindingResult().getFieldErrors().forEach(error ->
+                errors.put(error.getField(), error.getDefaultMessage())
+        );
+        return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
 
+    @ExceptionHandler(SQLSyntaxErrorException.class)
+    public ResponseEntity<Map<String, Object>> handleSQLSyntaxError(SQLSyntaxErrorException ex) {
+        Map<String, Object> errorResponse = new LinkedHashMap<>();
+        errorResponse.put("timestamp", LocalDateTime.now());
+        errorResponse.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
+        errorResponse.put("error", "SQL Syntax Error");
+        errorResponse.put("message", ex.getMessage());
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 }
 
 

@@ -1,8 +1,8 @@
 package com.batool.crud.security;
 
-import com.batool.crud.entity.Role;
-import com.batool.crud.entity.User;
-import com.batool.crud.repo.UserRepo;
+import com.batool.crud.enums.Role;
+import com.batool.crud.entities.User;
+import com.batool.crud.repos.UserRepo;
 import io.jsonwebtoken.Claims;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,16 +28,15 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.ArrayList;
 import java.util.Base64;
-import java.util.Collection;
 import java.util.List;
 
 @Component
 public class JwtFilter extends OncePerRequestFilter {
-    @Value("${login-api.rsa-public-key}")
+    @Value("${crud-api.rsa-public-key}")
     private String publicKey;
 
     @Autowired
-    public JwtFilter(@Value("${login-api.rsa-public-key}") String publicKey) {
+    public JwtFilter(@Value("${crud-api.rsa-public-key}") String publicKey) {
         this.publicKey = publicKey;
     }
     public JwtFilter(){}
@@ -60,10 +59,8 @@ public class JwtFilter extends OncePerRequestFilter {
 
         Claims claims;
         try {
-            claims = new JwtAuthenticator().validateJwtToken(token, getPublicKeyFromString(publicKey)); //Use custom JwtAuthenticator service to validate token with the correct public key
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        } catch (InvalidKeySpecException e) {
+            claims = new JwtTokenUtil().validateJwtToken(token, getPublicKeyFromString(publicKey)); //Use custom JwtAuthenticator service to validate token with the correct public key
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
             throw new RuntimeException(e);
         }
         if(claims == null) { //Check if information parsed by the JWT is valid
@@ -75,52 +72,25 @@ public class JwtFilter extends OncePerRequestFilter {
             chain.doFilter(request, response);
             return;
         }
-//        List<String> userAuths = user.getAuthorities(); //Parse user's authorities to for authorization
-//
-//        List<GrantedAuthority> authoritiesList = new ArrayList<>();
-//        if(userAuths == null){ //Check if they have any authorities
-//            chain.doFilter(request, response);
-//            return;
-//        }
-//        for(String s: userAuths){
-//            authoritiesList.add(new CustomAuthority(s));
-//        }
-//        Collection<GrantedAuthority> authorities = authoritiesList;
-//
-//        UserDetails userDetails = new CustomerDetails(authorities);
-//
-//        //Set UsernamePasswordAuthenticationToken for current context
-//        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null,
-//                userDetails == null ?
-//                        List.of() : userDetails.getAuthorities());
-//        authentication.setDetails(
-//                new WebAuthenticationDetailsSource().buildDetails(request)
-//        );
-//        SecurityContextHolder.getContext().setAuthentication(authentication);
-//        chain.doFilter(request, response); //Go down the filter chain
-        Role userRole = user.getRole(); // Retrieve user's role
+        Role userRole = user.getRole();
 
         List<GrantedAuthority> authoritiesList = new ArrayList<>();
-        if (userRole == null) { // Check if the user has a role assigned
+        if (userRole == null) {
             chain.doFilter(request, response);
             return;
         }
 
-// Convert Role enum to a GrantedAuthority
         authoritiesList.add(new SimpleGrantedAuthority(userRole.name()));
 
-        Collection<GrantedAuthority> authorities = authoritiesList;
+        UserDetails userDetails = new CustomerDetails(authoritiesList);
 
-        UserDetails userDetails = new CustomerDetails(authorities);
-
-// Set UsernamePasswordAuthenticationToken for the current context
         UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null,
                 userDetails.getAuthorities());
         authentication.setDetails(
                 new WebAuthenticationDetailsSource().buildDetails(request)
         );
         SecurityContextHolder.getContext().setAuthentication(authentication);
-        chain.doFilter(request, response); // Continue with the filter chain
+        chain.doFilter(request, response);
 
     }
 

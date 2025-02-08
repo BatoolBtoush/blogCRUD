@@ -37,7 +37,7 @@ public class SecurityConfiguration {
 //        config.addAllowedHeader("*");
 //        config.addAllowedMethod("*");
 //        source.registerCorsConfiguration("/**", config);
-//        config.setAllowedOrigins(List.of("http://167.71.45.184:3000", "http://localhost:8000"));
+//        config.setAllowedOrigins(List.of("http://localhost:8000"));
 //
 //
 //        return new CorsFilter(source);
