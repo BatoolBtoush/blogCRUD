@@ -1,5 +1,8 @@
 package com.batool.crud.services;
 
+import com.batool.crud.customexceptions.NewsDeletionNotAllowedException;
+import com.batool.crud.customexceptions.NewsDeletionRequestException;
+import com.batool.crud.customexceptions.UserNotFoundException;
 import com.batool.crud.dtos.NewsCreationDTO;
 import com.batool.crud.dtos.NewsRetrievalForAdminAndContentWriterDTO;
 import com.batool.crud.dtos.NewsRetrievalForNormalUserDTO;
@@ -33,7 +36,7 @@ public class NewsService {
     @Autowired
     private NewsDeletionRequestRepo newsDeletionRequestRepo;
 
-    public News createNews(NewsCreationDTO newsCreationDTO, User contentWriter) {
+    public void createNews(NewsCreationDTO newsCreationDTO, User contentWriter) {
         News news = new News();
         news.setTitle(newsCreationDTO.getTitle());
         news.setArabicTitle(newsCreationDTO.getArabicTitle());
@@ -43,7 +46,7 @@ public class NewsService {
         news.setImageUrl(newsCreationDTO.getImageUrl());
         news.setStatus(NewsStatus.PENDING);
         news.setCreatedBy(contentWriter);
-        return newsRepo.save(news);
+        newsRepo.save(news);
 
     }
 
@@ -105,14 +108,15 @@ public class NewsService {
 
         User user = userRepo.findByEmail(email);
         if (user == null) {
-            throw new EntityNotFoundException("User not found");
+            throw new UserNotFoundException("User not found");
         }
 
         boolean isCreator = news.getCreatedBy().getId().equals(user.getId());
         boolean isAdmin = user.getRole() == Role.ROLE_ADMIN;
 
         // Case 1: Content Writer can delete PENDING news directly
-        if (news.getStatus() == NewsStatus.PENDING && isCreator) {
+        // Admin can also delete PENDING news directly
+        if ((news.getStatus() == NewsStatus.PENDING && isCreator) || (news.getStatus() == NewsStatus.PENDING && isAdmin)) {
             news.setDeleted(true);
             newsRepo.save(news);
             return;
@@ -136,7 +140,7 @@ public class NewsService {
                 deleteRequest.setStatus(DeletionRequestStatus.PENDING);
                 newsDeletionRequestRepo.save(deleteRequest);
 
-                throw new ResponseStatusException(HttpStatus.ACCEPTED, "Delete request has been submitted for admin approval.");
+                throw new NewsDeletionRequestException("Delete request has been submitted for admin approval.");
             }
 
             // Case 3: Admin can soft delete directly
@@ -145,10 +149,10 @@ public class NewsService {
             return;
         }
 
-        throw new AccessDeniedException("You are not allowed to delete this news item.");
+        throw new NewsDeletionNotAllowedException("You are not allowed to delete this news item.");
     }
 
-    public List<NewsDeletionRequest> getAllDeletionRequests(){
+    public List<NewsDeletionRequest> getAllDeletionRequests() {
         return newsDeletionRequestRepo.findAll();
     }
 

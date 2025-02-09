@@ -1,6 +1,9 @@
 package com.batool.crud.services;
 
 
+import com.batool.crud.customexceptions.EmailAlreadyExistsException;
+import com.batool.crud.customexceptions.InvalidRefreshTokenException;
+import com.batool.crud.customexceptions.UserNotFoundException;
 import com.batool.crud.dtos.LoginRequestDTO;
 import com.batool.crud.dtos.RegistrationRequestDTO;
 import com.batool.crud.enums.Role;
@@ -28,8 +31,10 @@ public class AuthService {
 
 
     public User registerAdmin(RegistrationRequestDTO registrationRequestDTO){
-        if (userRepo.existsByEmail(registrationRequestDTO.getEmail().toLowerCase())) {
-            throw new IllegalArgumentException("Email is already in use");
+        String email = registrationRequestDTO.getEmail().toLowerCase();
+
+        if (userRepo.existsByEmail(email)) {
+            throw new EmailAlreadyExistsException("Email is already in use");
         }
 
         User user = new User();
@@ -40,14 +45,14 @@ public class AuthService {
         user.setPassword(Hasher.hashPasswordWithSalt(registrationRequestDTO.getPassword(), salt));
         user.setDateOfBirth(registrationRequestDTO.getDateOfBirth());
         user.setRole(Role.ROLE_ADMIN);
-        userRepo.save(user);
-
-        return user;
+        return userRepo.save(user);
    }
 
     public User registerContentWriter(RegistrationRequestDTO registrationRequestDTO){
-        if (userRepo.existsByEmail(registrationRequestDTO.getEmail().toLowerCase())) {
-            throw new IllegalArgumentException("Email is already in use");
+        String email = registrationRequestDTO.getEmail().toLowerCase();
+
+        if (userRepo.existsByEmail(email)) {
+            throw new EmailAlreadyExistsException("Email is already in use");
         }
 
         User user = new User();
@@ -58,15 +63,15 @@ public class AuthService {
         user.setPassword(Hasher.hashPasswordWithSalt(registrationRequestDTO.getPassword(), salt));
         user.setDateOfBirth(registrationRequestDTO.getDateOfBirth());
         user.setRole(Role.ROLE_CONTENT_WRITER);
-        userRepo.save(user);
-
-        return user;
+        return userRepo.save(user);
     }
 
 
     public User registerNormalUser(RegistrationRequestDTO registrationRequestDTO){
-        if (userRepo.existsByEmail(registrationRequestDTO.getEmail().toLowerCase())) {
-            throw new IllegalArgumentException("Email is already in use");
+        String email = registrationRequestDTO.getEmail().toLowerCase();
+
+        if (userRepo.existsByEmail(email)) {
+            throw new EmailAlreadyExistsException("Email is already in use");
         }
 
         User user = new User();
@@ -77,9 +82,7 @@ public class AuthService {
         user.setPassword(Hasher.hashPasswordWithSalt(registrationRequestDTO.getPassword(), salt));
         user.setDateOfBirth(registrationRequestDTO.getDateOfBirth());
         user.setRole(Role.ROLE_NORMAL);
-        userRepo.save(user);
-
-        return user;
+        return userRepo.save(user);
     }
 
 public ResponseEntity<Map<String, String>> login(LoginRequestDTO loginRequest) {
@@ -122,27 +125,22 @@ public ResponseEntity<Map<String, String>> login(LoginRequestDTO loginRequest) {
 
 
     public ResponseEntity<Map<String, String>> accessTokenFromRefreshToken(String refreshToken) {
-        if (jwtTokenUtil.isValidRefreshToken(refreshToken)) {
-            String userEmail = jwtTokenUtil.getEmailFromToken(refreshToken);
-
-            User user = checkDBForUserByEmail(userEmail);
-            if (user != null) {
-                String newAccessToken = jwtTokenUtil.generateAccessTokenFromRefreshToken(refreshToken);
-
-                Map<String, String> response = new HashMap<>();
-                response.put("access_token", newAccessToken);
-
-                return ResponseEntity.ok(response);
-            } else {
-                Map<String, String> errorResponse = new HashMap<>();
-                errorResponse.put("error", "User associated with the refresh token does not exist");
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
-            }
-        } else {
-            Map<String, String> errorResponse = new HashMap<>();
-            errorResponse.put("error", "Invalid refresh token");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
+        if (!jwtTokenUtil.isValidRefreshToken(refreshToken)) {
+            throw new InvalidRefreshTokenException("Refresh token is invalid or has expired");
         }
+        String userEmail = jwtTokenUtil.getEmailFromToken(refreshToken);
+        User user = checkDBForUserByEmail(userEmail);
+
+        if (user == null) {
+            throw new UserNotFoundException("User associated with the refresh token does not exist");
+        }
+
+        String newAccessToken = jwtTokenUtil.generateAccessTokenFromRefreshToken(refreshToken);
+
+        Map<String, String> response = new HashMap<>();
+        response.put("access_token", newAccessToken);
+
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
 }

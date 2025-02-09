@@ -1,5 +1,9 @@
 package com.batool.crud.security;
 
+import com.batool.crud.customexceptions.InvalidPublicKeyException;
+import com.batool.crud.customexceptions.InvalidRefreshTokenException;
+import com.batool.crud.customexceptions.InvalidTokenException;
+import com.batool.crud.customexceptions.TokenExpiredException;
 import com.batool.crud.entities.User;
 import com.batool.crud.repos.UserRepo;
 import io.jsonwebtoken.*;
@@ -19,6 +23,7 @@ import java.util.Date;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 
+import javax.servlet.http.HttpServletRequest;
 import java.security.PublicKey;
 
 @Component
@@ -84,6 +89,12 @@ public class JwtTokenUtil {
         return getClaimsFromToken(token).getSubject();
     }
 
+    public String getEmailFromTokenHTTPRequest(HttpServletRequest request) {
+        String authHeader = request.getHeader("Authorization");
+        String token = extractTokenFromAuthHeader(authHeader);
+        return getEmailFromToken(token);
+    }
+
     public Date getExpirationDateFromToken(String token) {
         return getClaimsFromToken(token).getExpiration();
     }
@@ -97,23 +108,24 @@ public class JwtTokenUtil {
                     .parseSignedClaims(token);
             return claimsEntity.getPayload();
         } catch (ExpiredJwtException expiredException) {
-            // Token has expired
-            System.out.println("Token has expired");
-            return null;
+            throw new TokenExpiredException("Token has expired");
         } catch (JwtException | IllegalArgumentException e) {
-            return null;
+            throw new InvalidTokenException("Invalid JWT token", e);
         }
     }
 
     public String generateAccessTokenFromRefreshToken(String refreshToken) {
         try {
             Claims claims = validateJwtToken(refreshToken, getPublicKeyFromString(publicKey));
+            if (claims == null) {
+                throw new InvalidRefreshTokenException("Invalid refresh token");
+            }
             String email = claims.getSubject();
             return generateToken(email, Tokens.ACCESS_TOKEN);
         } catch (JwtException | IllegalArgumentException e) {
-            throw new RuntimeException("Unable to generate access token from refresh token");
+            throw new InvalidRefreshTokenException("Unable to generate access token from refresh token: " + e.getMessage());
         } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
-            throw new RuntimeException(e);
+            throw new InvalidPublicKeyException("Error processing public key", e);
         }
     }
 
@@ -128,9 +140,9 @@ public class JwtTokenUtil {
             return !expirationDate.before(now);
         } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
             throw new RuntimeException(e);
-        } catch (ExpiredJwtException e) {
-            System.out.println("token has expired");        }
-        return false;
+        } catch (TokenExpiredException | InvalidTokenException e) {
+            return false;
+        }
     }
 
 
@@ -147,10 +159,6 @@ public class JwtTokenUtil {
                 .parseSignedClaims(token);
         return claimsEntity.getPayload();
 
-    }
-
-    public boolean isTokenExpired(String token) {
-        return getExpirationDateFromToken(token).before(new Date());
     }
 
     public String extractTokenFromAuthHeader(String authHeader) {

@@ -1,5 +1,7 @@
 package com.batool.crud.security;
 
+import com.batool.crud.customexceptions.InvalidTokenException;
+import com.batool.crud.customexceptions.TokenExpiredException;
 import com.batool.crud.enums.Role;
 import com.batool.crud.entities.User;
 import com.batool.crud.repos.UserRepo;
@@ -44,31 +46,39 @@ public class JwtFilter extends OncePerRequestFilter {
     private UserRepo userRepo;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws ServletException, IOException, IOException {
-        final String header = request.getHeader(HttpHeaders.AUTHORIZATION); //Parse Authorization header from request
-        if(header == null) { //Check if header exists
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws ServletException, IOException {
+        final String header = request.getHeader(HttpHeaders.AUTHORIZATION);
+        if(header == null) {
             chain.doFilter(request, response);
             return;
         }
-        if ((header).isEmpty() || !header.startsWith("Bearer ")) { //Check if the header is in proper format
+        if ((header).isEmpty() || !header.startsWith("Bearer ")) {
             chain.doFilter(request, response);
             return;
         }
 
-        String token = header.replace("Bearer ", ""); //Parse JWT token from request
+        String token = header.replace("Bearer ", "");
 
         Claims claims;
         try {
-            claims = new JwtTokenUtil().validateJwtToken(token, getPublicKeyFromString(publicKey)); //Use custom JwtAuthenticator service to validate token with the correct public key
+            claims = new JwtTokenUtil().validateJwtToken(token, getPublicKeyFromString(publicKey));
         } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
-            throw new RuntimeException(e);
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error processing public key");
+            return;
+        } catch (TokenExpiredException e) {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token has expired");
+            return;
+        } catch (InvalidTokenException e) {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid JWT token");
+            return;
         }
-        if(claims == null) { //Check if information parsed by the JWT is valid
+
+        if(claims == null) {
             chain.doFilter(request, response);
             return;
         }
         User user = userRepo.findByEmail(claims.get("email", String.class));
-        if(user == null){ //Check if username exists in class
+        if(user == null){
             chain.doFilter(request, response);
             return;
         }

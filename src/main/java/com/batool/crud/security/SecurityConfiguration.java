@@ -25,22 +25,5 @@ public class SecurityConfiguration {
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class); //Add a custom JWT filter to the already-existing stack of filters
         return http.build();
     }
-
-
-//    @Bean
-//    public CorsFilter corsFilter() {
-//        UrlBasedCorsConfigurationSource source =
-//                new UrlBasedCorsConfigurationSource();
-//        CorsConfiguration config = new CorsConfiguration();
-//        config.setAllowCredentials(true);
-//        config.addAllowedOrigin("*");
-//        config.addAllowedHeader("*");
-//        config.addAllowedMethod("*");
-//        source.registerCorsConfiguration("/**", config);
-//        config.setAllowedOrigins(List.of("http://localhost:8000"));
-//
-//
-//        return new CorsFilter(source);
-//    }
 }
 
